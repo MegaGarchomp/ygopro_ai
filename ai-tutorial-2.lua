@@ -1,19 +1,8 @@
 math.randomseed( require("os").time() )
+require("ai.ai")
 
 function OnStartOfDuel()	
 	AI.Chat("This is a tutorial AI file")
-end
-
-function ChainTKRO()
-	for i=1,#AI.GetOppMonsterZones() do
-		local c = AI.GetOppMonsterZones()[i]
-		if c and bit32.band(c.status,STATUS_SUMMONING)>0 then
-			if c.attack>=1900 then
-				return true
-			end
-		end
-	end
-	return false
 end
 
 function OnSelectOption(options)
@@ -21,14 +10,7 @@ function OnSelectOption(options)
 end
 
 function OnSelectEffectYesNo(id, triggeringCard)
-	if id == 7156252 then --Å@TKRO
-		if ChainTKRO() then
-			return 1
-		else
-			return 0
-		end
-	end
-		return 1
+	return 1
 end
 
 function OnSelectYesNo(description_id)
@@ -99,16 +81,7 @@ function OnSelectNumber(choices)
 end
 
 function OnSelectChain(cards, only_chains_by_player, forced)
-	for i=1,#cards do
-		local c = cards[i]
-		if c.id == 71564252 and ChainTKRO() then --TKRO
-			return 1,i
-		end
-		if c.id ~= 71564252 then 
-			return 1,i
-		end
-	end
-	return 0,0
+	return 1,1
 end
 
 function OnSelectSum(cards, sum, triggeringCard)
@@ -125,17 +98,35 @@ function OnSelectSum(cards, sum, triggeringCard)
 end
 
 function OnSelectCard(cards, minTargets, maxTargets, triggeringID, triggeringCard)
-  local result = {}
-  if triggeringID == 71413901 then -- Breaker
-    for i=1,#cards do
-      if cards[i].owner == 2 then
-        return {i}
-      end
-    end
-  end
-  for i=1,minTargets do
+  local result = {1}
+  --[[local tblAI = {}
+  local tblOpp = {}
+  for i=1,#AI.GetAIMonsterZones() do
+			tblAI[i] = AI.GetAIMonsterZones()[i]
+		end
+		table.sort(tblAI,
+			function(a,b)
+				return (a.attack < b.attack)
+			end
+		)
+		for k=1,#AI.GetOppMonsterZones() do
+			tblOpp[k] = AI.GetOppMonsterZones()[k]
+		end
+		table.sort(tblOpp,
+			function(a,b)
+				return (a.attack < b.attack)
+			end
+		)
+	end
+	local attackTarget=1
+	for i=1,#tblAI do
+		for k=1,#tblOpp do	
+			if (tblAI[i].attack > tblOpp[k].attack) then
+				attackTarget = tblOpp[k] ]]
+	
+  --[[for i=1,minTargets do
     result[i]=i
-  end
+  end]]
   return result
 end
 
@@ -145,20 +136,30 @@ function OnSelectBattleCommand(cards, activatable_cards)
 	local CMD_STOP = 0
 	local command = 1
 	local index = 1
-	local function getWeakestAttackerIndex()
-		local lowestIndex = 1
-		local lowestAttack = cards[1].attack
-		for i=2,#cards do
-			if cards[i].attack < lowestAttack then
-				lowestIndex = i
-				lowestAttack = cards[i].attack
+	local function getWeakestAttack()
+		local lowestAttack = AI.GetOppMonsterZones[1].attack
+		for i=2,#AI.GetOppMonsterZones() do
+			local c = AI.GetOppMonsterZones()[i]
+			if c.attack < lowestAttack then
+				lowestAttack = c.attack
 			end
 		end
-		return lowestIndex
+		return lowestAttack
 	end
-	if #cards > 0 then
+	local function getHighestAttackerIndex()
+		local highestIndex = 1
+		local highestAttack = cards[1].attack
+		for i=2,#cards do
+			if cards[i].attack > highestAttack then
+				highestIndex = i
+				highestAttack = cards[i].attack
+			end
+		end
+		return highestIndex
+	end
+	if #cards > 0 --[[and cards[getHighestAttackerIndex()].attack > getWeakestAttack()]] then
 		command = CMD_ATTACK
-		index = getWeakestAttackerIndex()
+		index = getHighestAttackerIndex()
 	elseif #activatable_cards > 0 then
 		command = CMD_ACTIVATE
 		index = 1
@@ -179,19 +180,9 @@ COMMAND_ACTIVATE 			= 5
 COMMAND_TO_NEXT_PHASE 		= 6
 COMMAND_TO_END_PHASE 		= 7
 function OnSelectInitCommand(cards, to_bp_allowed, to_ep_allowed)	
-  for i=1,#cards.activatable_cards do 
-    local c = cards.activatable_cards[i]
-    if c.id == 71413901 then -- Breaker
-      for j=1,#AI.GetOppSpellTrapZones() do
-        if AI.GetOppSpellTrapZones()[j] then
-          return COMMAND_ACTIVATE,i
-        end
-      end
-    end
-    if c.id ~= 71413901 then
-      return COMMAND_ACTIVATE,i
-    end
-  end
+	if #cards.activatable_cards > 0 then
+		return COMMAND_ACTIVATE,1
+	end
 	if #cards.spsummonable_cards > 0 then
 		return COMMAND_SPECIAL_SUMMON,1
 	end	
