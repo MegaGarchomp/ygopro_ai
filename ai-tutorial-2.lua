@@ -98,31 +98,65 @@ function OnSelectSum(cards, sum, triggeringCard)
 end
 
 function OnSelectCard(cards, minTargets, maxTargets, triggeringID, triggeringCard)
-  local result = {1}
-  --[[local tblAI = {}
-  local tblOpp = {}
-  for i=1,#AI.GetAIMonsterZones() do
-			tblAI[i] = AI.GetAIMonsterZones()[i]
-		end
-		table.sort(tblAI,
-			function(a,b)
-				return (a.attack < b.attack)
+  local result = {}
+  if Duel.GetCurrentPhase()==PHASE_BATTLE 
+  and GlobalAIIsAttacking 
+  and Duel.GetCurrentChain()==0
+  and not triggeringCard
+  then 
+	  AI.Chat("SelectCardEvent")
+	  local tblAI = {}
+	  local tblOpp = {}
+	  
+	  local AIMon = AI.GetAIMonsterZones()
+	  
+	  local AIOppMon = AI.GetOppMonsterZones()
+
+	  for i=1,#AIMon do
+		  if AIMon[i] ~= false then
+			  tblAI[i] = AIMon[i]
+			  tblAI[i].position = i
+		  else
+			  AI.Chat("No card")
+		  end
+	  end
+  
+	  table.sort(tblAI,
+		  function(a,b)
+			 return (a.attack < b.attack)
+		  end
+		  )
+		  
+		  
+		for i=1,#AIOppMon do
+			if AIOppMon[i] ~= false then
+				tblOpp[i] = AIOppMon[i]
+				tblOpp[i].position = i
+			else 
+				AI.Chat("No card")
 			end
-		)
-		for k=1,#AI.GetOppMonsterZones() do
-			tblOpp[k] = AI.GetOppMonsterZones()[k]
 		end
+		
 		table.sort(tblOpp,
 			function(a,b)
 				return (a.attack < b.attack)
 			end
-		)
+			)
+		
+		local a = 1
+		local b = #tblAI
+		while b@>= 1 do
+			local i = 1
+			while tblAI[b] > tblOpp[i] do
+				i = i + 1
+			end
+			b = b - 1
+			result[a] = tblOpp[i].position
+			a = a + 1
+		end
+		
+	  
 	end
-	local attackTarget=1
-	for i=1,#tblAI do
-		for k=1,#tblOpp do	
-			if (tblAI[i].attack > tblOpp[k].attack) then
-				attackTarget = tblOpp[k] ]]
 	
   --[[for i=1,minTargets do
     result[i]=i
@@ -137,12 +171,13 @@ function OnSelectBattleCommand(cards, activatable_cards)
 	local command = 1
 	local index = 1
 	local function getWeakestAttack()
-		local lowestAttack = AI.GetOppMonsterZones[1].attack
-		for i=2,#AI.GetOppMonsterZones() do
-			local c = AI.GetOppMonsterZones()[i]
-			if c.attack < lowestAttack then
-				lowestAttack = c.attack
-			end
+                local lowestAttack = -1
+                local OppMon = AI.GetOppMonsterZones() 
+		for i=1,#OppMon do
+                    local c = OppMon[i]
+                    if c ~= false and (lowestAttack == -1 or c.attack < lowestAttack) then
+                        lowestAttack = c.attack
+                    end
 		end
 		return lowestAttack
 	end
@@ -157,9 +192,17 @@ function OnSelectBattleCommand(cards, activatable_cards)
 		end
 		return highestIndex
 	end
+        AI.Chat("OnSelectBattleCommand")
+        AI.Chat(#cards,#activatable_cards)
 	if #cards > 0 --[[and cards[getHighestAttackerIndex()].attack > getWeakestAttack()]] then
 		command = CMD_ATTACK
 		index = getHighestAttackerIndex()
+                monattack = getWeakestAttack()
+                if (cards[index].attack <= monattack) then
+                    index = 0
+                    command = CMD_STOP
+                end
+                    
 	elseif #activatable_cards > 0 then
 		command = CMD_ACTIVATE
 		index = 1
