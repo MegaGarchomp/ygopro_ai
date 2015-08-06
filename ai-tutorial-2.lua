@@ -1,5 +1,6 @@
 math.randomseed( require("os").time() )
 require("ai.ai")
+--git test
 
 function OnStartOfDuel()	
 	AI.Chat("This is a tutorial AI file")
