@@ -1,3 +1,7 @@
+--[[ $B<ALd!!(B
+$B!!!!!!!!BG$D$Y$-%?%$%_%s%0(B
+	$B%(%i!<ItJ,(B
+	chainRArmor]]
 math.randomseed( require("os").time() )
 require("ai.ai")
 --git test
@@ -11,8 +15,28 @@ function OnSelectOption(options)
 end
 
 function OnSelectEffectYesNo(id, triggeringCard)
+	if id == 56120475 then -- $B_ZNvAu9C(B
+		if ChainRArmor() then
+			return 1
+		else
+			return 0
+		end
+	end
 	return 1
 end
+
+function ChainRArmor() --result$B$N7k2L$H(BOnSelectBattle$B;~$N(Bindex$B$N(B.attack$B$N%Q%i%a!<%?$rHf3S$7$F!"H/F0$9$Y$-$+H=Dj$9$k!#(B
+	for i=1, #AI.GetOppMonsterZones() do --$BH/F0$7$J$$M}M3(B
+		local c = AI.GetOppMonsterZones()[i]
+		if c.id ~= 86188410 then
+			return 1
+		else 
+			return 0 
+		end
+	end
+	return 1
+end
+	
 
 function OnSelectYesNo(description_id)
 	if description_id == 30 then -- continue attacking
@@ -25,7 +49,7 @@ end
 function OnSelectPosition(id, available)
 	local result = 0
 	local band = bit32.band
-  result = POS_FACEUP_ATTACK
+  	result = POS_FACEUP_ATTACK
 	if band(result,available) == 0 then
 		if band(POS_FACEUP_ATTACK,available) > 0 then
 			result = POS_FACEUP_ATTACK
@@ -82,6 +106,15 @@ function OnSelectNumber(choices)
 end
 
 function OnSelectChain(cards, only_chains_by_player, forced)
+	for i=1, #cards do
+		local c = cards[i]
+		if c.id == 56120475 and ChainRArmor() then
+			return 1,i
+		end
+		if c.id ~= 56120475 then
+			return 1,i
+		end
+	end
 	return 1,1
 end
 
@@ -100,9 +133,10 @@ end
 
 function OnSelectCard(cards, minTargets, maxTargets, triggeringID, triggeringCard)
   local result = {1}
-  AI.Chat("a")
+  print("result check")
+  print(result)
+  OSBindex = 1 --$B967b$9$k%+!<%I$N%$%s%G%C%/%9(B
   if Duel.GetCurrentPhase() == PHASE_BATTLE then
-	AI.Chat("b")
 	local tblAI = {}
 	local tblOpp = {}
   
@@ -126,18 +160,15 @@ function OnSelectCard(cards, minTargets, maxTargets, triggeringID, triggeringCar
 			return (a.attack < b.attack)
 		end
 		)
-	for i=1,#tblAI do
-		AI.Chat(tblAI[i].position)
-		print(tblAI[i].attack)
-	end
   
 	local oppmoncount = 1
-	for i=1, #AIOppMon do  -- tblOpp‚ÉƒAƒNƒZƒX‚·‚é‚ÆƒGƒ‰[‚ªo‚é
-		tblOpp[oppmoncount] = AIOppMon[i]
-		tblOpp[oppmoncount].position = oppmoncount
-		AI.Chat(tblOpp[oppmoncount].position)
-		print("oppmon")
-		oppmoncount = oppmoncount + 1
+	for i=1, #AIOppMon do 
+		if AIOppMon[i] ~= false then
+			tblOpp[oppmoncount] = AIOppMon[i]
+			tblOpp[oppmoncount].position = oppmoncount
+			AI.Chat(tblOpp[oppmoncount].position)
+			oppmoncount = oppmoncount + 1
+		end
 	end
 	
 	table.sort(tblOpp,
@@ -146,32 +177,14 @@ function OnSelectCard(cards, minTargets, maxTargets, triggeringID, triggeringCar
 		end
 		)
 	end
-		
-  
-  
-  
-  --[[for i=1,#AIMon do
-                        tblAI[i] = AIMon[i]
-                end
-                table.sort(tblAI,
-                        function(a,b)
-                                return (a.attack < b.attack)
-                        end
-                )
-                for k=1,#AIOppMon do
-                        tblOpp[k] = AIOppMon[k]
-                end
-                table.sort(tblOpp,
-                        function(a,b)
-                                return (a.attack < b.attack)
-                        end
-                )
-        end]]
---[[        local attackTarget=1
-        for i=1,#tblAI do
-                for k=1,#tblOpp do        
-                        if (tblAI[i].attack > tblOpp[k].attack) then
-                                attackTarget = tblOpp[k] ]]
+	
+	for i=1, #tblOpp do -- attempt to get length of global 'AIOppMon' (a nil value)
+		if tblOpp[i] ~= false then
+			if (AIMon[OSBindex].attack > tblOpp[i].attack) then
+				result = {tblOpp[i].position}
+			end
+		end
+	end
         
   for i=1,minTargets do
     result[i]=i
@@ -220,8 +233,6 @@ function OnSelectBattleCommand(cards, activatable_cards)
 		return lowestIndex
 	end
 
-    AI.Chat("OnSelectBattleCommand")
-    AI.Chat(#cards,#activatable_cards)
 	
 	if #cards > 0 and getWeakestAttack() ~= -1 then
 		command = CMD_ATTACK
@@ -231,7 +242,7 @@ function OnSelectBattleCommand(cards, activatable_cards)
                     index = 0
                     command = CMD_STOP
                 end
-    elseif #cards > 0 and getWeakestAttack() == -1 then --ƒS[ƒYƒPƒA
+    	elseif #cards > 0 and getWeakestAttack() == -1 then
 		command = CMD_ATTACK
 		index = getAIWeakestAttackerIndex()
 	elseif #activatable_cards > 0 then
@@ -241,6 +252,7 @@ function OnSelectBattleCommand(cards, activatable_cards)
 		command = CMD_STOP
 		index = 0
 	end
+	OSBindex = index
 	return command,index
 end
 
