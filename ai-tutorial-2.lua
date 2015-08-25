@@ -1,10 +1,8 @@
---[[ 質問　
-　　　　打つべきタイミング
-	エラー部分
-	chainRArmor]]
+
 math.randomseed( require("os").time() )
 require("ai.ai")
 --git test
+OSBindex = 1
 
 function OnStartOfDuel()	
 	AI.Chat("This is a tutorial AI file")
@@ -22,19 +20,24 @@ function OnSelectEffectYesNo(id, triggeringCard)
 			return 0
 		end
 	end
-	return 1
 end
 
-function ChainRArmor() --resultの結果とOnSelectBattle時のindexの.attackのパラメータを比較して、発動すべきか判定する。
+function ChainRArmor() 
 	for i=1, #AI.GetOppMonsterZones() do --発動しない理由
 		local c = AI.GetOppMonsterZones()[i]
-		if c.id ~= 86188410 then
-			return 1
+		if c~=false and c.id ~= 86188410 then
+			local check = 1
 		else 
-			return 0 
+			check = 0 
+		end
+		if check == 0 then
+			print("wildman")
+			return 0
+		else 
+			print("not wildman")
+			return 1
 		end
 	end
-	return 1
 end
 	
 
@@ -108,15 +111,19 @@ end
 function OnSelectChain(cards, only_chains_by_player, forced)
 	for i=1, #cards do
 		local c = cards[i]
-		if c.id == 56120475 and ChainRArmor() then
-			return 1,i
+		if c.id == 56120475 then
+                       if ChainRArmor() then
+			   return 1,i
+                       else
+                           return 0,i
+                       end
 		end
 		if c.id ~= 56120475 then
 			return 1,i
 		end
 	end
-	return 1,1
 end
+
 
 function OnSelectSum(cards, sum, triggeringCard)
 	local result = {}
@@ -131,66 +138,6 @@ function OnSelectSum(cards, sum, triggeringCard)
 	return result
 end
 
-function OnSelectCard(cards, minTargets, maxTargets, triggeringID, triggeringCard)
-  local result = {1}
-  print("result check")
-  print(result)
-  OSBindex = 1 --攻撃するカードのインデックス
-  if Duel.GetCurrentPhase() == PHASE_BATTLE then
-	local tblAI = {}
-	local tblOpp = {}
-  
-	local AIMon = AI.GetAIMonsterZones()
-  
-	local AIOppMon = AI.GetOppMonsterZones()
-  
-	local tblcount = 1
-	for i=1,#AIMon do
-		if AIMon[i] ~= false then
-			tblAI[tblcount] = AIMon[i]
-			tblAI[tblcount].position = i
-			tblcount = tblcount + 1
-		else
-			print("No card aimon")
-		end
-	end
-  
-	table.sort(tblAI,
-		function(a,b)
-			return (a.attack < b.attack)
-		end
-		)
-  
-	local oppmoncount = 1
-	for i=1, #AIOppMon do 
-		if AIOppMon[i] ~= false then
-			tblOpp[oppmoncount] = AIOppMon[i]
-			tblOpp[oppmoncount].position = oppmoncount
-			AI.Chat(tblOpp[oppmoncount].position)
-			oppmoncount = oppmoncount + 1
-		end
-	end
-	
-	table.sort(tblOpp,
-		function(a,b)
-			return (a.attack < b.attack)
-		end
-		)
-	end
-	
-	for i=1, #tblOpp do -- attempt to get length of global 'AIOppMon' (a nil value)
-		if tblOpp[i] ~= false then
-			if (AIMon[OSBindex].attack > tblOpp[i].attack) then
-				result = {tblOpp[i].position}
-			end
-		end
-	end
-        
-  for i=1,minTargets do
-    result[i]=i
-  end
-  return result
-end
 
 function OnSelectBattleCommand(cards, activatable_cards)
 	local CMD_ATTACK = 1
@@ -254,6 +201,61 @@ function OnSelectBattleCommand(cards, activatable_cards)
 	end
 	OSBindex = index
 	return command,index
+end
+
+function OnSelectCard(cards, minTargets, maxTargets, triggeringID, triggeringCard)
+  local result = {1}
+  for i=1,minTargets do
+  	result[i] = i
+  end
+  if Duel.GetCurrentPhase() == PHASE_BATTLE then
+	local tblAI = {}
+	local tblOpp = {}
+  
+	local AIMon = AI.GetAIMonsterZones()
+  
+	local AIOppMon = AI.GetOppMonsterZones()
+  
+	local tblcount = 1
+	for i=1,#AIMon do
+		if AIMon[i] ~= false then
+			tblAI[tblcount] = AIMon[i]
+			tblAI[tblcount].position = i
+			tblcount = tblcount + 1
+		end
+	end
+  
+	table.sort(tblAI,
+		function(a,b)
+			return (a.attack < b.attack)
+		end
+		)
+  
+	local oppmoncount = 1
+	for i=1, #AIOppMon do 
+		if AIOppMon[i] ~= false then
+			tblOpp[oppmoncount] = AIOppMon[i]
+			tblOpp[oppmoncount].position = oppmoncount
+			AI.Chat(tblOpp[oppmoncount].position)
+			oppmoncount = oppmoncount + 1
+		end
+	end
+	
+	table.sort(tblOpp,
+		function(a,b)
+			return (a.attack < b.attack)
+		end
+		)
+	
+	for i=1, #tblOpp do -- attempt to get length of global 'tblOpp' (a nil value)
+		if tblOpp[i] ~= false then
+			if (AIMon[OSBindex].attack > tblOpp[i].attack) then
+				result = {tblOpp[i].position}
+			end
+		end
+	end
+  end
+  return result
 end
 
 COMMAND_LET_AI_DECIDE		= -1
