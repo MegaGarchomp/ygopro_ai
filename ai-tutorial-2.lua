@@ -1,4 +1,4 @@
-
+--test
 math.randomseed( require("os").time() )
 require("ai.ai")
 --git test
