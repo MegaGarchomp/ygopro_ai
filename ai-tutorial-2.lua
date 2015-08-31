@@ -1,4 +1,4 @@
---test
+
 math.randomseed( require("os").time() )
 require("ai.ai")
 --git test
@@ -13,7 +13,7 @@ function OnSelectOption(options)
 end
 
 function OnSelectEffectYesNo(id, triggeringCard)
-	if id == 56120475 then -- 炸裂装甲
+	if id == 56120475 then 
 		if ChainRArmor() then
 			return 1
 		else
@@ -22,21 +22,14 @@ function OnSelectEffectYesNo(id, triggeringCard)
 	end
 end
 
-function ChainRArmor() 
-	for i=1, #AI.GetOppMonsterZones() do --発動しない理由
-		local c = AI.GetOppMonsterZones()[i]
-		if c~=false and c.id ~= 86188410 then
-			local check = 1
-		else 
-			check = 0 
-		end
-		if check == 0 then
-			print("wildman")
-			return 0
-		else 
-			print("not wildman")
-			return 1
-		end
+function ChainRArmor()
+	if Duel.GetAttacker():GetCode() == 86188410 then
+			return true
+	end
+	if Duel.GetAttacker():GetAttack() >= Duel.GetAttackTarget():GetAttack() then
+		return false
+	else
+		return true
 	end
 end
 	
@@ -113,15 +106,13 @@ function OnSelectChain(cards, only_chains_by_player, forced)
 		local c = cards[i]
 		if c.id == 56120475 then
                        if ChainRArmor() then
-			   return 1,i
+			   return 0,i
                        else
-                           return 0,i
+                           return 1,i
                        end
 		end
-		if c.id ~= 56120475 then
-			return 1,i
-		end
 	end
+        return 1,i
 end
 
 
@@ -167,6 +158,21 @@ function OnSelectBattleCommand(cards, activatable_cards)
 		end
 		return highestIndex
 	end
+
+	local function getOSBindex()
+		local highestIndex = 1
+		local AIMon = AI.GetAIMonsterZones()
+		local highestAttack = -1
+		for i=1,#AIMon do
+			if AIMon[i] ~= false then
+				if AIMon[i].attack > highestAttack then
+					highestIndex = i
+					highestAttack = AIMon[i].attack
+				end
+			end
+		end
+		return highestIndex
+	end
 	
 	local function getAIWeakestAttackerIndex()
 		local lowestIndex = 1
@@ -180,10 +186,11 @@ function OnSelectBattleCommand(cards, activatable_cards)
 		return lowestIndex
 	end
 
-	
 	if #cards > 0 and getWeakestAttack() ~= -1 then
+                
 		command = CMD_ATTACK
 		index = getHighestAttackerIndex()
+		OSBindex = getOSBindex()
                 monattack = getWeakestAttack()
                 if (cards[index].attack <= monattack) then
                     index = 0
@@ -193,13 +200,13 @@ function OnSelectBattleCommand(cards, activatable_cards)
 		command = CMD_ATTACK
 		index = getAIWeakestAttackerIndex()
 	elseif #activatable_cards > 0 then
+                print("if3")
 		command = CMD_ACTIVATE
 		index = 1
 	else
 		command = CMD_STOP
 		index = 0
 	end
-	OSBindex = index
 	return command,index
 end
 

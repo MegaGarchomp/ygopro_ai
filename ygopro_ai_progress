@@ -1,0 +1,6 @@
+9/1
+onselectbattle onselectcard 部分のインデックス部分の問題を解決
+http://www.ygopro.co/Forum/tabid/95/g/posts/t/4292/Which-of-the-Opponent-s-Monsters-Is-Attacking-Right-No%EF%BD%97#post28700
+のページにて攻撃しているカード、されているカードについての情報取得の方法を確認し、それについてスクリプトを書くことができた。
+
+来週の目標はミラフォ幽閉聖杯収縮系統のカードについてのスクリプト、炸裂装甲を打つべきでない条件の追加を目指す。
