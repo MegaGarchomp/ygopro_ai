@@ -3,6 +3,7 @@ math.randomseed( require("os").time() )
 require("ai.ai")
 --git test
 OSBindex = 1
+checkfirstturn = true 
 
 function OnStartOfDuel()	
 	AI.Chat("This is a tutorial AI file")
@@ -20,11 +21,27 @@ function OnSelectEffectYesNo(id, triggeringCard)
 			return 0
 		end
 	end
+	return 1
 end
 
 function ChainRArmor()
-	if Duel.GetAttacker():GetCode() == 86188410 then
-			return true
+	RAlist = {86188410, 81105204, 94977269, 31386180, 44405066,44508094,24696097,83994433,35952884}
+	for i=1,#RAlist do
+		if Duel.GetAttacker():GetCode() == RAlist[i] then
+				return true
+		end
+	end
+	if Duel.GetAttacker():GetCode() == 95600067 and Duel.GetAttackTarget():GetAttack() <= 2000 then
+		return false
+	end
+	if Duel.GetAttacker():GetCode() == 79853073 and Duel.GetAttackTarget():GetAttack() <= 3350 and Duel.GetAttackTarget():GetRace() == 1  then
+		return false
+	end
+	if Duel.GetAttacker():GetCode() == 96235275 and Duel.GetAttackTarget():GetAttack() <= 2100 then
+		return false
+	end
+	if Duel.GetAttacker():GetCode() == 36687247 and Duel.GetAttackTargeT():GetAttack() <= 2000 then
+		return false
 	end
 	if Duel.GetAttacker():GetAttack() >= Duel.GetAttackTarget():GetAttack() then
 		return false
@@ -112,7 +129,7 @@ function OnSelectChain(cards, only_chains_by_player, forced)
                        end
 		end
 	end
-        return 1,i
+	return 1,1
 end
 
 
@@ -158,6 +175,7 @@ function OnSelectBattleCommand(cards, activatable_cards)
 		end
 		return highestIndex
 	end
+
 
 	local function getOSBindex()
 		local highestIndex = 1
@@ -243,7 +261,6 @@ function OnSelectCard(cards, minTargets, maxTargets, triggeringID, triggeringCar
 		if AIOppMon[i] ~= false then
 			tblOpp[oppmoncount] = AIOppMon[i]
 			tblOpp[oppmoncount].position = oppmoncount
-			AI.Chat(tblOpp[oppmoncount].position)
 			oppmoncount = oppmoncount + 1
 		end
 	end
@@ -279,7 +296,7 @@ function OnSelectInitCommand(cards, to_bp_allowed, to_ep_allowed)
 		return COMMAND_ACTIVATE,1
 	end
 	if #cards.spsummonable_cards > 0 then
-		return COMMAND_SPECIAL_SUMMON,1
+		return COMMAND_SPECIAL_SUMMON,3
 	end	
 	if #cards.summonable_cards > 0 then
 		return COMMAND_SUMMON,1
@@ -287,13 +304,25 @@ function OnSelectInitCommand(cards, to_bp_allowed, to_ep_allowed)
 	if #cards.monster_setable_cards > 0 then
 		return COMMAND_SET_MONSTER,1
 	end
-	if #cards.st_setable_cards > 0 and AI.GetCurrentPhase() == PHASE_MAIN2 then
-		local setCards = cards.st_setable_cards
-		for i=1,#setCards do
-			if bit32.band(setCards[i].type,TYPE_TRAP) > 0 then
-				return COMMAND_SET_ST,i
+	if #cards.st_setable_cards > 0 then
+		
+		if AI.GetCurrentPhase() == PHASE_MAIN1 and Duel.GetTurnCount() == 1 then
+			local setCards = cards.st_setable_cards
+			for i=1,#setCards do
+				if bit32.band(setCards[i].type,TYPE_TRAP) > 0 then
+					return COMMAND_SET_ST,i
+				end
 			end
 		end
+		if AI.GetCurrentPhase() == PHASE_MAIN2 then
+			local setCards = cards.st_setable_cards
+			for i=1,#setCards do
+				if bit32.band(setCards[i].type,TYPE_TRAP) > 0 then
+					return COMMAND_SET_ST,i
+				end
+			end
+		end
+
 	end
 	if AI.GetCurrentPhase() == PHASE_MAIN1 and to_bp_allowed then
 		return COMMAND_TO_NEXT_PHASE,1
