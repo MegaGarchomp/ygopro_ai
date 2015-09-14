@@ -24,6 +24,8 @@ function OnSelectEffectYesNo(id, triggeringCard)
 	return 1
 end
 
+
+
 function ChainRArmor()
 	RAlist = {86188410, 81105204, 94977269, 31386180, 44405066,44508094,24696097,83994433,35952884}
 	for i=1,#RAlist do
@@ -122,14 +124,22 @@ function OnSelectChain(cards, only_chains_by_player, forced)
 	for i=1, #cards do
 		local c = cards[i]
 		if c.id == 56120475 then
-                       if ChainRArmor() then
-			   return 0,i
-                       else
-                           return 1,i
-                       end
+            if ChainRArmor() then
+				return 0,i
+            else
+                return 1,i
+            end
+		end
+		if c.id == 05318639 then
+			if RemovalCheck(05318639) then
+				AI.Chat("be removed")
+				return 1,i
+			else
+				return 0,i
+			end
 		end
 	end
-	return 1,1
+	return 0,0
 end
 
 
@@ -218,9 +228,17 @@ function OnSelectBattleCommand(cards, activatable_cards)
 		command = CMD_ATTACK
 		index = getAIWeakestAttackerIndex()
 	elseif #activatable_cards > 0 then
-                print("if3")
-		command = CMD_ACTIVATE
-		index = 1
+		for i=1,#activatable_cards do
+			local c = activatable_cards[i]
+			if c.id ~= 05318639 then
+				command = CMD_ACTIVATE
+				index = 1 
+			else
+				AI.Chat("stop")
+				command = CMD_STOP
+				index = 0
+			end
+		end
 	else
 		command = CMD_STOP
 		index = 0
@@ -293,10 +311,24 @@ COMMAND_TO_NEXT_PHASE 		= 6
 COMMAND_TO_END_PHASE 		= 7
 function OnSelectInitCommand(cards, to_bp_allowed, to_ep_allowed)	
 	if #cards.activatable_cards > 0 then
-		return COMMAND_ACTIVATE,1
+		for j=1,#cards do
+			local c = cards[j]
+			if c.id ~= 05318639 then
+				AI.Chat("activate")
+				return COMMAND_ACTIVATE,1 
+			end
+		end
 	end
 	if #cards.spsummonable_cards > 0 then
-		return COMMAND_SPECIAL_SUMMON,3
+		local i = 0
+		for j = 1, #AI.GetAIExtraDeck() do
+			if AI.GetAIExtraDeck()[j] ~= false then
+				if AI.GetAIExtraDeck()[j].id == 71594310 then
+					i = j
+				end
+			end
+		end
+		return COMMAND_SPECIAL_SUMMON,i
 	end	
 	if #cards.summonable_cards > 0 then
 		return COMMAND_SUMMON,1
@@ -309,7 +341,7 @@ function OnSelectInitCommand(cards, to_bp_allowed, to_ep_allowed)
 		if AI.GetCurrentPhase() == PHASE_MAIN1 and Duel.GetTurnCount() == 1 then
 			local setCards = cards.st_setable_cards
 			for i=1,#setCards do
-				if bit32.band(setCards[i].type,TYPE_TRAP) > 0 then
+				if bit32.band(setCards[i].type,TYPE_TRAP) > 0 or bit32.band(setCards[i].type,TYPE_SPELL) > 0 then
 					return COMMAND_SET_ST,i
 				end
 			end
@@ -317,7 +349,7 @@ function OnSelectInitCommand(cards, to_bp_allowed, to_ep_allowed)
 		if AI.GetCurrentPhase() == PHASE_MAIN2 then
 			local setCards = cards.st_setable_cards
 			for i=1,#setCards do
-				if bit32.band(setCards[i].type,TYPE_TRAP) > 0 then
+				if bit32.band(setCards[i].type,TYPE_TRAP) > 0 or bit32.band(setCards[i].type, TYPE_SPELL) > 0 then
 					return COMMAND_SET_ST,i
 				end
 			end

@@ -12,3 +12,10 @@ http://www.ygopro.co/Forum/tabid/95/g/posts/t/4292/Which-of-the-Opponent-s-Monst
 発動すべきでないidについてのテーブルを作成し、テーブルに対してforループを回して、追加カードが出た時に対応しやすくした。
 
 エクストラデッキのカードをどこで出すべきかなどの解決を目指す。
+
+9/15
+ループを回してidと一致させることでエクストラのカードを選択させることができるようになった。
+自分のターンにカードを発動する場合にはonselectinitcommand。
+ただしバトルフェイズのみに関してはonselectbattlecommandの領域になる。
+相手のターンにカードを発動する場合にはonselectchain。
+removalcheck で除去されるかを確認できる。
