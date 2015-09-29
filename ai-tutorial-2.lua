@@ -4,6 +4,7 @@ require("ai.ai")
 --git test
 OSBindex = 1
 checkfirstturn = true 
+FB = 0
 
 function OnStartOfDuel()	
 	AI.Chat("This is a tutorial AI file")
@@ -18,6 +19,13 @@ function OnSelectEffectYesNo(id, triggeringCard)
 		if ChainRArmor() then
 			return 1
 		else
+			return 0
+		end
+	end
+	if id == 84749824 then
+		if ChainSW() then
+			return 1
+		else 
 			return 0
 		end
 	end
@@ -120,6 +128,18 @@ function OnSelectNumber(choices)
 	return math.random(#choices)
 end
 
+function ChainSW()
+	for i=1,#AI.GetOppMonsterZones() do
+		local c = AI.GetOppMonsterZones()[i]
+		if c and bit32.band(c.status,STATUS_SUMMONING)>0 then
+			if c.attack>=1900 then
+				return true
+			end
+		end
+	end
+	return false
+end
+
 function OnSelectChain(cards, only_chains_by_player, forced)
 	for i=1, #cards do
 		local c = cards[i]
@@ -137,6 +157,18 @@ function OnSelectChain(cards, only_chains_by_player, forced)
 			else
 				return 0,i
 			end
+		end
+		if c.id == 78474168 then
+			local e = Duel.GetChainInfo(Duel.GetCurrentChain(),CHAININFO_TRIGGERING_EFFECT)
+			if e then
+				AI.Chat("check bts")
+				return 1,i
+			else
+				return 0,i
+			end
+		end
+		if c.id == 84749824 and ChainSW() then
+			return 1,i
 		end
 	end
 	return 0,0
@@ -247,7 +279,7 @@ function OnSelectBattleCommand(cards, activatable_cards)
 end
 
 function OnSelectCard(cards, minTargets, maxTargets, triggeringID, triggeringCard)
-  local result = {1}
+  local result = {3}
   for i=1,minTargets do
   	result[i] = i
   end
@@ -297,6 +329,12 @@ function OnSelectCard(cards, minTargets, maxTargets, triggeringID, triggeringCar
 		end
 	end
   end
+  --[[for i=1,#AI.GetAIMainDeck() do
+	local c = AI.GetAIMainDeck()[i]
+	if c.id == 11091375 then
+		result = {i}
+	end
+  end]]
   return result
 end
 
@@ -312,12 +350,14 @@ COMMAND_TO_END_PHASE 		= 7
 function OnSelectInitCommand(cards, to_bp_allowed, to_ep_allowed)	
 	if #cards.activatable_cards > 0 then
 		for j=1,#cards do
+			AI.Chat("loop")
 			local c = cards[j]
 			if c.id ~= 05318639 then
 				AI.Chat("activate")
 				return COMMAND_ACTIVATE,1 
 			end
 		end
+		return COMMAND_ACTIVATE,1
 	end
 	if #cards.spsummonable_cards > 0 then
 		local i = 0

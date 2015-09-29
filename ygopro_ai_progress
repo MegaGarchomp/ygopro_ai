@@ -19,3 +19,10 @@ http://www.ygopro.co/Forum/tabid/95/g/posts/t/4292/Which-of-the-Opponent-s-Monst
 ただしバトルフェイズのみに関してはonselectbattlecommandの領域になる。
 相手のターンにカードを発動する場合にはonselectchain。
 removalcheck で除去されるかを確認できる。
+
+9/29
+メインデッキの参照方法の確認、おろかな埋葬で確認した。コメントアウトしている。
+ブレイクスルースキル、エフェクト・ヴェーラーなどが基本的に発動可能である状況であれば発動するので、発動タイミングは個々のデッキで変更する。
+Duel.GetChainInfo(Duel.GetCurrentChain(),CHAININFO_TRIGGERING_EFFECT)がtrueかfalseでチェーンしているのかどうかを確かめることができる。
+AI.GetOppMonsterZones()をループで回して、カードの状態が召喚している状態で、攻撃力をとりあえず1900以上の時に発動させる条件で神の警告を設定した。
+メモ：来週からの予定を聞く
