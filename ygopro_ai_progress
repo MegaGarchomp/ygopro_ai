@@ -26,3 +26,8 @@ removalcheck で除去されるかを確認できる。
 Duel.GetChainInfo(Duel.GetCurrentChain(),CHAININFO_TRIGGERING_EFFECT)がtrueかfalseでチェーンしているのかどうかを確かめることができる。
 AI.GetOppMonsterZones()をループで回して、カードの状態が召喚している状態で、攻撃力をとりあえず1900以上の時に発動させる条件で神の警告を設定した。
 メモ：来週からの予定を聞く
+
+10/08
+ファイル分けのテスト　問題なし
+デッキの決定
+来週の授業時間変更云々
